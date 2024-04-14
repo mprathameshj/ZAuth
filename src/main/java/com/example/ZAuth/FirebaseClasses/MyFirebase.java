@@ -51,7 +51,7 @@ public class MyFirebase {
         }
     }
 
-    public boolean findUserByMobileAndUpdateAuthToken(String mobNum, String clientId,String authToken){
+    public int findUserByMobileAndUpdateAuthToken(String mobNum, String clientId,String authToken){
         try {
             // Get Firestore instance from FirebaseConfig
             Firestore firestore = firebaseConfig.getFirestore();
@@ -63,7 +63,7 @@ public class MyFirebase {
             Query query = collectionRef.whereEqualTo("MobNumber", mobNum);
 
             // Asynchronously query Firestore and fetch only the document IDs
-            ApiFuture<QuerySnapshot> querySnapshotFuture = query.select(FieldPath.documentId()).get();
+            ApiFuture<QuerySnapshot> querySnapshotFuture = query.select(String.valueOf(FieldPath.documentId()),"Blocked").get();
 
             // Get the result of the query (blocking operation)
             QuerySnapshot querySnapshot = querySnapshotFuture.get();
@@ -73,6 +73,10 @@ public class MyFirebase {
                 // Document ID with matching mobile number found
                 String docId = document.getId();
 
+                boolean isBlocked= Boolean.TRUE.equals(document.getBoolean("Blocked"));
+
+                if(isBlocked) return 0;
+
                 // Asynchronously update the 'AuthToken' field of the document with the provided token
                 ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
                         .update("AuthToken", authToken); // Update only the 'AuthToken' field
@@ -81,16 +85,16 @@ public class MyFirebase {
                 updateFuture.get();
 
                 // Return true to indicate a user with the specified mobile number was found and updated
-                return true;
+                return 1;
             }
 
             // No document found with the specified mobile number
-            return false;
+            return 2;
 
         } catch (Exception e) {
             // Handle any potential exceptions (e.g., Firestore initialization, query execution)
             e.printStackTrace();
-            return false; // Return false in case of error
+            return 3; // Return false in case of error
         }
     }
 

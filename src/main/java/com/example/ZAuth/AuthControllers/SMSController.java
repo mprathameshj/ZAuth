@@ -74,15 +74,18 @@ public class SMSController {
              String encryptedToken=BcryptEncrypt.encrypt(token);
 
             //User may exist in database
-            if(firebase.findUserByMobileAndUpdateAuthToken(data.getMobNumber(),
-                    data.getClientId(),
-                    encryptedToken)){
-                return  ResponseEntity.ok(token);
-            }else {
+             int result=firebase.findUserByMobileAndUpdateAuthToken(data.getMobNumber(),
+                     data.getClientId(),
+                     encryptedToken);
+
+             if(result==0) return ResponseEntity.unprocessableEntity().body("Blocked");
+             else if(result==1) return ResponseEntity.ok(token);
+             else if(result==3) return ResponseEntity.internalServerError().body("null");
+
                 //User is new
                 firebase.createUserWithMobCredintials(data, encryptedToken);
                 return ResponseEntity.ok(token);
-            }
+
 
         }
 
