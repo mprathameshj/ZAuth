@@ -51,7 +51,7 @@ public class MyFirebase {
         }
     }
 
-    public int findUserByMobileAndUpdateAuthToken(String mobNum, String clientId,String authToken){
+    public String findUserByMobileAndUpdateAuthToken(String mobNum, String clientId,String authToken){
         try {
             // Get Firestore instance from FirebaseConfig
             Firestore firestore = firebaseConfig.getFirestore();
@@ -75,7 +75,7 @@ public class MyFirebase {
 
                 boolean isBlocked= Boolean.TRUE.equals(document.getBoolean("Blocked"));
 
-                if(isBlocked) return 0;
+                if(isBlocked) return "0";
 
                 // Asynchronously update the 'AuthToken' field of the document with the provided token
                 ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
@@ -85,21 +85,21 @@ public class MyFirebase {
                 updateFuture.get();
 
                 // Return true to indicate a user with the specified mobile number was found and updated
-                return 1;
+                return docId;
             }
 
             // No document found with the specified mobile number
-            return 2;
+            return "2";
 
         } catch (Exception e) {
             // Handle any potential exceptions (e.g., Firestore initialization, query execution)
             e.printStackTrace();
-            return 3; // Return false in case of error
+            return "3"; // Return false in case of error
         }
     }
 
 
-    public void createUserWithMobCredintials(AddUserWithMobNumData data,String encryptedToken){
+    public String createUserWithMobCredintials(AddUserWithMobNumData data,String encryptedToken){
         String userId= String.valueOf(UUID.randomUUID());
         String clientId= data.getClientId();
         Map<String,Object> userInfo=new HashMap<>();
@@ -146,6 +146,7 @@ public class MyFirebase {
         // Set the document data with custom options to merge with existing data
         docRef.set(userInfo, SetOptions.merge());
 
+        return userId;
     }
 
 

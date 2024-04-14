@@ -4,6 +4,7 @@ import com.example.ZAuth.Cache.ClientIdCache;
 import com.example.ZAuth.DataEncryptor.BcryptEncrypt;
 import com.example.ZAuth.DatabaseHelper.AddUserWithMobNumData;
 import com.example.ZAuth.FirebaseClasses.MyFirebase;
+import com.example.ZAuth.Helper.ReturnAuthDataToClient;
 import com.example.ZAuth.Helper.SMSCrediantials;
 import com.example.ZAuth.Helper.SMSData;
 import com.example.ZAuth.SMSServices.TwilioConfig;
@@ -62,11 +63,10 @@ public class SMSController {
 
     //Verify the OTP
     @PostMapping("/verifyotpAndAddUser")
-    public ResponseEntity<String> verifyOtp(@RequestBody AddUserWithMobNumData data){
+    public ResponseEntity<ReturnAuthDataToClient> verifyOtp(@RequestBody AddUserWithMobNumData data){
 
-        System.out.println(data.getMobNumber());
         if(!smsVerificationStatus.containsNumber(data.getMobNumber()))
-            return ResponseEntity.badRequest().body("null");
+            return ResponseEntity.badRequest().build();
 
         if(verifyOtpHelper(data.getMobNumber(), data.getOtp(), data.getSenderToken())){
 
@@ -74,22 +74,22 @@ public class SMSController {
              String encryptedToken=BcryptEncrypt.encrypt(token);
 
             //User may exist in database
-             int result=firebase.findUserByMobileAndUpdateAuthToken(data.getMobNumber(),
+             String result=firebase.findUserByMobileAndUpdateAuthToken(data.getMobNumber(),
                      data.getClientId(),
                      encryptedToken);
 
-             if(result==0) return ResponseEntity.unprocessableEntity().body("Blocked");
-             else if(result==1) return ResponseEntity.ok(token);
-             else if(result==3) return ResponseEntity.internalServerError().body("null");
-
-                //User is new
-                firebase.createUserWithMobCredintials(data, encryptedToken);
-                return ResponseEntity.ok(token);
-
-
+             if(result.equals("0")) return ResponseEntity.unprocessableEntity().build();//blocked user
+             else if(result.equals("3")) return ResponseEntity.internalServerError().build();//exception
+             else if (result.equals("2")) {
+                 //User is new
+               String userId=  firebase.createUserWithMobCredintials(data, encryptedToken);
+                 return ResponseEntity.ok(new ReturnAuthDataToClient(userId,token));
+             }else{
+                 return ResponseEntity.ok(new ReturnAuthDataToClient(result,token));
+             }
         }
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("null");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
 
