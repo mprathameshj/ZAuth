@@ -1,23 +1,26 @@
 package com.example.ZAuth.VerificationCache;
 import com.example.ZAuth.Helper.SMSCrediantials;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+
 
 @Component
 public class SMSVerificationStatus {
-private static  HashMap<String,SMSCrediantials> SMSmap=new HashMap<>();
+ static  HashMap<String,SMSCrediantials> SMSmap=new HashMap<>();
 
 
 public void addSMSCrediantilas(String number,SMSCrediantials smsCrediantials){
     SMSmap.put(number,smsCrediantials);
 }
 
+public int size(){
+    return SMSmap.size();
+}
+
 public boolean containsNumber(String number){
+    System.out.println("hashmap" +  String.valueOf(SMSmap.get(number)));
     return  SMSmap.containsKey(number);
 }
 
@@ -25,8 +28,9 @@ public boolean verifyOtp(String number,String senderToken,String otp){
     SMSCrediantials previousCred=SMSmap.get(number);
     if(previousCred==null) return false;
 
-    if(previousCred.senderToken==senderToken&&
-       previousCred.generatedOtp==otp) return true;
+    if (previousCred.senderToken.equals(senderToken) &&
+            previousCred.generatedOtp.equals(otp))
+        return true;
 
     return false;
 }

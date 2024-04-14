@@ -30,7 +30,7 @@ public class DeleteOTPLogs {
             // Check if the entry is older than 120 seconds (2 minutes)
             if (currentTimeMillis - entryTimestamp > 120000) {
                 iterator.remove(); // Remove the entry from the map
-                System.out.println("the entry removed "+cred.generatedOtp);
+                System.out.println("the entry removed "+ entry.toString()+" "+cred.generatedOtp);
             }
         }
     }

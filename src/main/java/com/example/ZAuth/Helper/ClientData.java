@@ -4,6 +4,8 @@ public class ClientData {
     private String apiKey;
     private String apiPassword;
 
+    public ClientData(){}
+
     public String getApiKey() {
         return apiKey;
     }

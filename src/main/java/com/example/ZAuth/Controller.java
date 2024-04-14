@@ -1,5 +1,10 @@
 package com.example.ZAuth;
+import com.example.ZAuth.Cache.ClientIdCache;
+import com.example.ZAuth.DatabaseHelper.AddUserWithMobNumData;
 import com.example.ZAuth.FirebaseClasses.FirebaseConfig;
+import com.example.ZAuth.FirebaseClasses.MyFirebase;
+import com.example.ZAuth.FirebaseClasses.MyFirebaseRealtime;
+import com.example.ZAuth.VerificationCache.SMSVerificationStatus;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
@@ -24,7 +29,14 @@ public class Controller {
     @Autowired
     private FirebaseConfig firebaseConfig;
 
+    @Autowired
+    MyFirebase myFirebase;
 
+    @Autowired
+    ClientIdCache clientIdCache;
+
+    @Autowired
+    SMSVerificationStatus smsVerificationStatus;
 
     @GetMapping("/test")
     public  String poke() throws IOException {
@@ -72,6 +84,35 @@ public class Controller {
 
 
         return "Firebase services (Realtime Database and Firestore) initialized successfully!";
+    }
+
+
+    @GetMapping("/testMethod")
+    public String test(){
+
+        // Create a new instance of AddUserWithMobNumData
+        AddUserWithMobNumData userData = new AddUserWithMobNumData();
+
+        // Set random test values using setters
+        userData.setAuthMethod("MobileNumber");
+        userData.setMobNumber("9011161777");
+        userData.setAuthToken("abc123xyz");
+        userData.setAvailableSessions("5");
+        userData.setRole("User");
+        userData.setCurrLogin("1");
+        userData.setSessionTime("null");
+        userData.setClientId("ASDFGHJKL");
+        userData.setClintApi("exampleClientApi");
+        userData.setClientApikey("exampleApiKey");
+        userData.setIpAdd("192.168.1.100");
+        userData.setDeviceInfo("vivo z1xindia");
+        userData.setTimeStamp("2024-04-14 15:30:00");
+        userData.setSenderToken("exampleSenderToken");
+        userData.setOtp("1234");
+
+        myFirebase.createUserWithMobCredintials(userData,"ThisIsIncryptedTokenheyr87y7yyydj%3o3&8");
+
+        return  "Added";
     }
 
 }

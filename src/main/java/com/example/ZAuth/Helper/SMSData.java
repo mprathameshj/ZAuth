@@ -3,6 +3,9 @@ package com.example.ZAuth.Helper;
 public class SMSData {
     private String mobileNumber;
     private String senderToken;
+    private String clientId;
+    private String clientApiKey;
+    private String clientApiPass;
 
     public String getMobileNumber() {
         return mobileNumber;
@@ -18,5 +21,18 @@ public class SMSData {
 
     public void setSenderToken(String senderToken) {
         this.senderToken = senderToken;
+    }
+
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public String getClientApiKey() {
+        return clientApiKey;
+    }
+
+    public String getClientApiPass() {
+        return clientApiPass;
     }
 }
