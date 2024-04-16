@@ -1,9 +1,14 @@
 package com.example.ZAuth.FirebaseClasses;
 
+import com.example.ZAuth.DataEncryptor.BcryptEncrypt;
 import com.example.ZAuth.DatabaseHelper.AddUserWithMobNumData;
+import com.example.ZAuth.DatabaseHelper.AddUserWithUserNamePassData;
+import com.example.ZAuth.Helper.UserCredintialsUserNamePass;
 import com.google.cloud.firestore.*;
 import com.google.firebase.auth.UserInfo;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Component;
 import com.google.api.core.ApiFuture;
 
@@ -108,11 +113,18 @@ public class MyFirebase {
         userInfo.put("MobNumber",data.getMobNumber());
 
         if(data.getSessionTime().equals("null")){
-            userInfo.put("AuthToken",encryptedToken+" "+"null");
+            if(!data.getPlatform().equals("WEB"))
+                userInfo.put("AuthToken",encryptedToken+" "+"null");
+            else
+                userInfo.put("AuthTokenWeb",encryptedToken+" "+"null");
         }else{
             int sessionTimeMinutes= Integer.parseInt(data.getSessionTime());
             String AuthValidTimeStamp= generateFutureTimestamp(sessionTimeMinutes);
-            userInfo.put("AuthToken",encryptedToken+" "+AuthValidTimeStamp);
+
+            if(!data.getPlatform().equals("WEB"))
+                userInfo.put("AuthToken",encryptedToken+" "+AuthValidTimeStamp);
+            else
+                userInfo.put("AuthTokenWeb",encryptedToken+" "+ AuthValidTimeStamp);
         }
 
         if(!data.getAvailableSessions().equals("null"))
@@ -147,6 +159,124 @@ public class MyFirebase {
         docRef.set(userInfo, SetOptions.merge());
 
         return userId;
+    }
+
+
+    public String addUserWithUseNamePass(AddUserWithUserNamePassData data ,String encryptedToken){
+        String userId= String.valueOf(UUID.randomUUID());
+        String clientId=data.getClientId();
+
+        Map<String,Object> userInfo=new HashMap<>();
+        userInfo.put("AuthMethod","UserNamePassword");
+        userInfo.put("UserName",data.getUserName());
+
+        String encrtptedPass= BcryptEncrypt.encrypt(data.getPassword());
+        userInfo.put("Password",encrtptedPass);
+
+        if(!data.getAvailableSessions().equals("null"))
+            userInfo.put("AvailableSessions",Integer.valueOf(data.getAvailableSessions()));
+        if(!data.getRole().equals("null"))
+            userInfo.put("Role",data.getRole());
+
+        userInfo.put("CurrLogin",1);
+        if(data.getSessionTime().equals("null"))
+            userInfo.put("SessionTime","null");
+        else
+            userInfo.put("SessionTime",data.getSessionTime());
+
+        String deviceInfo=data.getIpAdd()+" "+data.getDeviceInfo()+" "+data.getTimeStamp();//Add in LoginHistory Array
+        // Add device info to LoginHistory array
+        List<String> loginHistory = new ArrayList<>();
+        loginHistory.add(deviceInfo);
+        userInfo.put("LoginHistory", loginHistory);
+
+        userInfo.put("Blocked",false);
+
+        if(data.getSessionTime().equals("null")){
+            if(!data.getPlatform().equals("WEB"))
+            userInfo.put("AuthToken",encryptedToken+" "+"null");
+            else
+            userInfo.put("AuthTokenWeb",encryptedToken+" "+"null");
+        }else{
+            int sessionTimeMinutes= Integer.parseInt(data.getSessionTime());
+            String AuthValidTimeStamp= generateFutureTimestamp(sessionTimeMinutes);
+
+            if(!data.getPlatform().equals("WEB"))
+            userInfo.put("AuthToken",encryptedToken+" "+AuthValidTimeStamp);
+            else
+            userInfo.put("AuthTokenWeb",encryptedToken+" "+ AuthValidTimeStamp);
+        }
+
+
+        Firestore firestore=firebaseConfig.getFirestore();
+
+
+        // Define the path to the document in Firestore (clientId/newDocumentId")
+        String documentPath =clientId + "/" + userId;
+
+        // Create or overwrite the document with the specified ID
+        DocumentReference docRef = firestore.document(documentPath);
+
+        // Set the document data with custom options to merge with existing data
+        docRef.set(userInfo, SetOptions.merge());
+
+        return userId;
+    }
+
+
+    public String validateUsernamePass(UserCredintialsUserNamePass credintials,String authToken){
+        try{
+
+            // Get Firestore instance from FirebaseConfig
+            Firestore firestore = firebaseConfig.getFirestore();
+
+            // Reference to the Firestore collection (assuming 'clientId' is the collection name)
+            CollectionReference collectionRef = firestore.collection(credintials.getClientId());
+
+            // Create a query to find documents where 'mobNum' field matches the provided mobile number
+            Query query = collectionRef.whereEqualTo("UserName", credintials.getUserName());
+
+            // Asynchronously query Firestore and fetch only the document IDs
+            ApiFuture<QuerySnapshot> querySnapshotFuture = query.select(String.valueOf(FieldPath.documentId()),"Blocked","Password","SessionTime").get();
+
+            // Get the result of the query (blocking operation)
+            QuerySnapshot querySnapshot = querySnapshotFuture.get();
+
+            // Check if any documents match the query
+            for (QueryDocumentSnapshot document : querySnapshot) {
+                // Document ID with matching mobile number found
+                String docId = document.getId();
+                String sessionTime= String.valueOf(document.get("SessionTime"));
+                String encryptedPass=String.valueOf(document.get("Password"));
+                boolean isBlocked= Boolean.TRUE.equals(document.getBoolean("Blocked"));
+
+
+                if (!BCrypt.checkpw(credintials.getPassword(),encryptedPass)){
+                    return "INVALID";
+                }
+                
+                if(isBlocked) return "BLOCKED";
+
+                String newAuthToken=authToken+" "+"null";
+                if(!sessionTime.equals("null")){
+                    int sessionTimeMinutes= Integer.parseInt(sessionTime);
+                    String AuthValidTimeStamp= generateFutureTimestamp(sessionTimeMinutes);
+                    newAuthToken=authToken+" "+AuthValidTimeStamp;
+                }
+
+                // Asynchronously update the 'AuthToken' field of the document with the provided token
+                ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
+                        .update("AuthToken", newAuthToken,"LastLogin",String.valueOf(System.currentTimeMillis())); // Update only the 'AuthToken' field
+
+                // Return true to indicate a user with the specified mobile number was found and updated
+                return docId;
+            }
+
+        }catch (Exception e){
+            return "ERROR";
+        }
+
+        return "NEWUSER";
     }
 
 

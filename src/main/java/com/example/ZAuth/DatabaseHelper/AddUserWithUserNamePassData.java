@@ -1,23 +1,21 @@
 package com.example.ZAuth.DatabaseHelper;
 
-
-public class AddUserWithMobNumData {
-    public String AuthMethod;
-    public String MobNumber;
-  //  public String AuthToken;
-    public String AvailableSessions;
-    public String Role;
-   // public String CurrLogin;
-    public String sessionTime;  //unit->minutes
-    public String clientId;
-    public String clintApi;
-    public String clientApikey;
-    public String ipAdd;
-    public String deviceInfo;
-    public String timeStamp;
-    public String senderToken;
-    public String otp;
-    public String platform;
+public class AddUserWithUserNamePassData {
+    private String authMethod;
+    private String userName;
+    private String password;
+    private String availableSessions;
+    private String role;
+    private String sessionTime;  //unit->minutes
+    private String clientId;
+    private String clintApi;
+    private String clientApikey;
+    private String ipAdd;
+    private String deviceInfo;
+    private String timeStamp;
+    private String recoveryMail;
+    private String recoveryMob;
+    private String platform;
 
     public String getPlatform() {
         return platform;
@@ -28,52 +26,44 @@ public class AddUserWithMobNumData {
     }
 
     public String getAuthMethod() {
-        return AuthMethod;
+        return authMethod;
     }
 
     public void setAuthMethod(String authMethod) {
-        AuthMethod = authMethod;
+        this.authMethod = authMethod;
     }
 
-    public String getMobNumber() {
-        return MobNumber;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setMobNumber(String mobNumber) {
-        MobNumber = mobNumber;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-//    public String getAuthToken() {
-//        return AuthToken;
-//    }
-//
-//    public void setAuthToken(String authToken) {
-//        AuthToken = authToken;
-//    }
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     public String getAvailableSessions() {
-        return AvailableSessions;
+        return availableSessions;
     }
 
     public void setAvailableSessions(String availableSessions) {
-        AvailableSessions = availableSessions;
+        this.availableSessions = availableSessions;
     }
 
     public String getRole() {
-        return Role;
+        return role;
     }
 
     public void setRole(String role) {
-        Role = role;
+        this.role = role;
     }
-
-//    public String getCurrLogin() {
-//        return CurrLogin;
-//    }
-//
-//    public void setCurrLogin(String currLogin) {
-//        CurrLogin = currLogin;
-//    }
 
     public String getSessionTime() {
         return sessionTime;
@@ -131,19 +121,19 @@ public class AddUserWithMobNumData {
         this.timeStamp = timeStamp;
     }
 
-    public String getSenderToken() {
-        return senderToken;
+    public String getRecoveryMail() {
+        return recoveryMail;
     }
 
-    public void setSenderToken(String senderToken) {
-        this.senderToken = senderToken;
+    public void setRecoveryMail(String recoveryMail) {
+        this.recoveryMail = recoveryMail;
     }
 
-    public String getOtp() {
-        return otp;
+    public String getRecoveryMob() {
+        return recoveryMob;
     }
 
-    public void setOtp(String otp) {
-        this.otp = otp;
+    public void setRecoveryMob(String recoveryMob) {
+        this.recoveryMob = recoveryMob;
     }
 }

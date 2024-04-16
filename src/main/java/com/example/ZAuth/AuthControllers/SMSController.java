@@ -63,10 +63,10 @@ public class SMSController {
 
     //Verify the OTP
     @PostMapping("/verifyotpAndAddUser")
-    public ResponseEntity<ReturnAuthDataToClient> verifyOtp(@RequestBody AddUserWithMobNumData data){
+    public ResponseEntity<?> verifyOtp(@RequestBody AddUserWithMobNumData data){
 
         if(!smsVerificationStatus.containsNumber(data.getMobNumber()))
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OTP expired");
 
         if(verifyOtpHelper(data.getMobNumber(), data.getOtp(), data.getSenderToken())){
 
@@ -78,8 +78,8 @@ public class SMSController {
                      data.getClientId(),
                      encryptedToken);
 
-             if(result.equals("0")) return ResponseEntity.unprocessableEntity().build();//blocked user
-             else if(result.equals("3")) return ResponseEntity.internalServerError().build();//exception
+             if(result.equals("0")) return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("The user is blocked");//blocked user
+             else if(result.equals("3")) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Something went wrong");//exception
              else if (result.equals("2")) {
                  //User is new
                String userId=  firebase.createUserWithMobCredintials(data, encryptedToken);
@@ -89,7 +89,7 @@ public class SMSController {
              }
         }
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Something went wrong");
     }
 
 
