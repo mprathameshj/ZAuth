@@ -90,8 +90,7 @@ public class Controller {
     @GetMapping("/testMethod")
     public String test(){
 
-        return  String.valueOf(myFirebase.findUserByMobileAndUpdateAuthToken("+91850952160",
-                "ASDFGHJKL","AUTHTOKEN null"));
+        return  "";
     }
 
 }

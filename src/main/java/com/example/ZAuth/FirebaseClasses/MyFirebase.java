@@ -5,8 +5,6 @@ import com.example.ZAuth.DatabaseHelper.AddUserWithMobNumData;
 import com.example.ZAuth.DatabaseHelper.AddUserWithUserNamePassData;
 import com.example.ZAuth.Helper.UserCredintialsUserNamePass;
 import com.google.cloud.firestore.*;
-import com.google.firebase.auth.UserInfo;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Component;
@@ -15,6 +13,7 @@ import com.google.api.core.ApiFuture;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 
 @Component
@@ -56,7 +55,7 @@ public class MyFirebase {
         }
     }
 
-    public String findUserByMobileAndUpdateAuthToken(String mobNum, String clientId,String authToken){
+    public String findUserByMobileAndUpdateAuthToken(String mobNum, String clientId,String authToken,String platform){
         try {
             // Get Firestore instance from FirebaseConfig
             Firestore firestore = firebaseConfig.getFirestore();
@@ -83,12 +82,13 @@ public class MyFirebase {
                 if(isBlocked) return "0";
 
                 // Asynchronously update the 'AuthToken' field of the document with the provided token
-                ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
-                        .update("AuthToken", authToken); // Update only the 'AuthToken' field
-
-                // Wait for the update operation to complete (blocking operation)
-                updateFuture.get();
-
+                if(platform.equals("null")) {
+                    ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
+                            .update("AuthToken", authToken); // Update only the 'AuthToken' field
+                }else{
+                    ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
+                            .update("AuthTokenWeb", authToken);
+                }
                 // Return true to indicate a user with the specified mobile number was found and updated
                 return docId;
             }
@@ -145,6 +145,8 @@ public class MyFirebase {
         userInfo.put("LoginHistory", loginHistory);
 
         userInfo.put("Blocked",false);
+        userInfo.put("LastLogin",System.currentTimeMillis());
+
 
         Firestore firestore=firebaseConfig.getFirestore();
 
@@ -169,6 +171,7 @@ public class MyFirebase {
         Map<String,Object> userInfo=new HashMap<>();
         userInfo.put("AuthMethod","UserNamePassword");
         userInfo.put("UserName",data.getUserName());
+        userInfo.put("LastLogin",System.currentTimeMillis());
 
         String encrtptedPass= BcryptEncrypt.encrypt(data.getPassword());
         userInfo.put("Password",encrtptedPass);
@@ -209,6 +212,10 @@ public class MyFirebase {
 
 
         Firestore firestore=firebaseConfig.getFirestore();
+
+        if(checkIfAllreadyExist(data.getUserName(),data.getClientId())){
+            return "DUPLICATEUSER";
+        }
 
 
         // Define the path to the document in Firestore (clientId/newDocumentId")
@@ -264,10 +271,13 @@ public class MyFirebase {
                     newAuthToken=authToken+" "+AuthValidTimeStamp;
                 }
 
-                // Asynchronously update the 'AuthToken' field of the document with the provided token
-                ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
-                        .update("AuthToken", newAuthToken,"LastLogin",String.valueOf(System.currentTimeMillis())); // Update only the 'AuthToken' field
-
+                if(credintials.getPlatform().equals("null")) {
+                    ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
+                            .update("AuthToken", newAuthToken, "LastLogin", String.valueOf(System.currentTimeMillis())); // Update only the 'AuthToken' field
+                }else{
+                    ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
+                            .update("AuthTokenWeb", newAuthToken, "LastLogin", String.valueOf(System.currentTimeMillis()));
+                }
                 // Return true to indicate a user with the specified mobile number was found and updated
                 return docId;
             }
@@ -296,5 +306,34 @@ public class MyFirebase {
 
         // Convert future timestamp to String and return
         return String.valueOf(futureTimestampMillis);
+    }
+
+    public boolean checkIfAllreadyExist(String userName,String clientId){
+
+        Firestore firestore = firebaseConfig.getFirestore();
+        CollectionReference collectionRef = firestore.collection(clientId);
+
+        // Create a query to find documents where 'UserName' field matches the provided username
+        Query query = collectionRef.whereEqualTo("UserName", userName).limit(1);
+
+        // Asynchronously query Firestore to fetch at most 1 document
+        ApiFuture<QuerySnapshot> querySnapshotFuture = query.get();
+
+        try {
+            // Get the result of the query (blocking operation)
+            QuerySnapshot querySnapshot = querySnapshotFuture.get();
+
+            // Check if any documents match the query
+            if (!querySnapshot.isEmpty()) {
+                // Document(s) with matching UserName found
+                return true;
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            // Handle any potential exceptions
+            e.printStackTrace();
+        }
+
+        // No matching documents found
+        return false;
     }
 }

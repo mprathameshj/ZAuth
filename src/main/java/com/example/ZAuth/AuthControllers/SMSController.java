@@ -76,7 +76,7 @@ public class SMSController {
             //User may exist in database
              String result=firebase.findUserByMobileAndUpdateAuthToken(data.getMobNumber(),
                      data.getClientId(),
-                     encryptedToken);
+                     encryptedToken,data.getPlatform());
 
              if(result.equals("0")) return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("The user is blocked");//blocked user
              else if(result.equals("3")) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Something went wrong");//exception

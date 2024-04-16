@@ -41,6 +41,8 @@ public class UserNamePasswordController {
 
         String userId= myFirebase.addUserWithUseNamePass(data,encryptedToken);
 
+        if(userId.equals("DUPLICATEUSER")) return ResponseEntity.status(HttpStatus.CONFLICT).body("Username is already registred");
+
         return ResponseEntity.ok(new ReturnAuthDataToClient(userId,token));
     }
 

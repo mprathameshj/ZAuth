@@ -6,7 +6,15 @@ public class UserCredintialsUserNamePass {
     private String clientId;
     private String clientApiKey;
     private String clientApiPass;
+    private String platform;
 
+    public String getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
 
     public String getUserName() {
         return userName;
