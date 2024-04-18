@@ -8,6 +8,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.Objects;
 
 @Component
 public class MyFirebaseOne {
@@ -27,10 +28,12 @@ public class MyFirebaseOne {
 
             DocumentSnapshot snapshot= document.get();
 
-            if(snapshot==null) return "INVALID";
+            if (!snapshot.exists()) {
+                return "INVALID";
+            }
 
-            String rowToken= snapshot.get("AuthToken").toString();
-            String sessionTime= snapshot.get("SessionTime").toString();
+            String rowToken= Objects.requireNonNull(snapshot.get("AuthToken")).toString();
+            String sessionTime= Objects.requireNonNull(snapshot.get("SessionTime")).toString();
 
 
             if(rowToken==null) return "UNKNOWN";
@@ -52,9 +55,6 @@ public class MyFirebaseOne {
             System.out.println(e.toString());
                 return "ERROR";
             }
-
-
-
             return "OK";
         }
 

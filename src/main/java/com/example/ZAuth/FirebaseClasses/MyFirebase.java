@@ -67,7 +67,7 @@ public class MyFirebase {
             Query query = collectionRef.whereEqualTo("MobNumber", mobNum);
 
             // Asynchronously query Firestore and fetch only the document IDs
-            ApiFuture<QuerySnapshot> querySnapshotFuture = query.select(String.valueOf(FieldPath.documentId()),"Blocked").get();
+            ApiFuture<QuerySnapshot> querySnapshotFuture = query.select(String.valueOf(FieldPath.documentId()),"Blocked","SessionTime").get();
 
             // Get the result of the query (blocking operation)
             QuerySnapshot querySnapshot = querySnapshotFuture.get();
@@ -76,18 +76,35 @@ public class MyFirebase {
             for (QueryDocumentSnapshot document : querySnapshot) {
                 // Document ID with matching mobile number found
                 String docId = document.getId();
+                String sessionTime= document.get("SessionTime").toString();
+                if(sessionTime==null) sessionTime="null";
 
                 boolean isBlocked= Boolean.TRUE.equals(document.getBoolean("Blocked"));
 
                 if(isBlocked) return "0";
 
                 // Asynchronously update the 'AuthToken' field of the document with the provided token
+                // Asynchronously update the 'AuthToken' field of the document with the provided token
                 if(platform.equals("null")) {
-                    ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
-                            .update("AuthToken", authToken); // Update only the 'AuthToken' field
+                    if(sessionTime.equals("null")) {
+                        ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
+                                .update("AuthToken", authToken+" "+"null"); // Update only the 'AuthToken' field
+                    }else{
+                        int sessionTimeMinutes= Integer.parseInt(sessionTime);
+                        String AuthValidTimeStamp= generateFutureTimestamp(sessionTimeMinutes);
+                        ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
+                                .update("AuthToken", authToken + " "+AuthValidTimeStamp);
+                    }
                 }else{
-                    ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
-                            .update("AuthTokenWeb", authToken);
+                    if(sessionTime.equals("null")) {
+                        ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
+                                .update("AuthTokenWeb", authToken+" "+"null"); // Update only the 'AuthToken' field
+                    }else{
+                        int sessionTimeMinutes= Integer.parseInt(sessionTime);
+                        String AuthValidTimeStamp= generateFutureTimestamp(sessionTimeMinutes);
+                        ApiFuture<WriteResult> updateFuture = collectionRef.document(docId)
+                                .update("AuthTokenWeb", authToken + " "+AuthValidTimeStamp);
+                    }
                 }
                 // Return true to indicate a user with the specified mobile number was found and updated
                 return docId;
