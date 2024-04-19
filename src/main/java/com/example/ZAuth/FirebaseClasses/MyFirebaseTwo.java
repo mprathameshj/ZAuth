@@ -81,7 +81,7 @@ public class MyFirebaseTwo {
         } catch (Exception e) {
             // Handle any potential exceptions (e.g., Firestore initialization, query execution)
             e.printStackTrace();
-            return "ERROR"; // Return false in case of error
+            return "ERROR"+ e; // Return false in case of error
         }
     }
 
