@@ -39,7 +39,7 @@ public class GoogleEmailAuthController {
             String result=myFirebaseTwo.findUserByEmailAndUpdateAuthToken(data.getEmail(),
                     data.getClientId(),encryptedToken, data.getPlatform());
 
-            if(result.equals("ERROR")) return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("something_went_wrong");
+            if(result.startsWith("ERROR")) return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
             else if (result.equals("BLOCKED")) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("user_is_blocked");
             else if(result.equals("NEWUSER")){
                 String userId=myFirebaseTwo.createUserWithEmailCredintials(data,encryptedToken);

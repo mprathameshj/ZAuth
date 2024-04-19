@@ -60,6 +60,12 @@
 			<artifactId>google-auth-library-oauth2-http</artifactId>
 			<version>0.26.0</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/javax.mail/mail -->
+		<!-- Spring Boot Starter for Mail (includes JavaMailSender) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 
 
 	</dependencies>

@@ -4,6 +4,7 @@ import com.example.ZAuth.DatabaseHelper.AddUserWithMobNumData;
 import com.example.ZAuth.FirebaseClasses.FirebaseConfig;
 import com.example.ZAuth.FirebaseClasses.MyFirebase;
 import com.example.ZAuth.FirebaseClasses.MyFirebaseRealtime;
+import com.example.ZAuth.SMSServices.EmailSender;
 import com.example.ZAuth.VerificationCache.SMSVerificationStatus;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
@@ -30,10 +31,7 @@ public class Controller {
     private FirebaseConfig firebaseConfig;
 
     @Autowired
-    MyFirebase myFirebase;
-
-    @Autowired
-    ClientIdCache clientIdCache;
+    EmailSender emailSender;
 
     @Autowired
     SMSVerificationStatus smsVerificationStatus;
@@ -89,8 +87,8 @@ public class Controller {
 
     @GetMapping("/testMethod")
     public String test(){
-
-        return  "";
+        emailSender.sendEmail("castlehindi@gmail.com","test email","this is body");
+        return  "ok";
     }
 
 }
