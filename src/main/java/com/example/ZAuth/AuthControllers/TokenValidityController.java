@@ -1,5 +1,6 @@
 package com.example.ZAuth.AuthControllers;
 
+import com.example.ZAuth.Cache.AuthTokenCache;
 import com.example.ZAuth.DatabaseHelper.TokenVerifyData;
 import com.example.ZAuth.FirebaseClasses.MyFirebaseOne;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,19 @@ public class TokenValidityController {
     @Autowired
     MyFirebaseOne myFirebaseOne;
 
+    @Autowired
+    AuthTokenCache authTokenCache;
+
     @PostMapping("/validateToken")
     public ResponseEntity<?> validateToken(@RequestBody TokenVerifyData data){
+
+        String cacheResult= authTokenCache.validateToken(data);
+
+        if (cacheResult.equals("NO")) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        else if (cacheResult.equals("OK")) {
+         myFirebaseOne.updateLastLogin(data.getClientId(),data.getUserId());
+         return ResponseEntity.ok("Authorosed");
+        }
 
         if(data.getPlatform().equals("WEB"))
             return validateTokenHelper(data);

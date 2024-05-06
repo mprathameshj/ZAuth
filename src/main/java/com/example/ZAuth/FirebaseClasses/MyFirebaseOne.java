@@ -1,5 +1,6 @@
 package com.example.ZAuth.FirebaseClasses;
 
+import com.example.ZAuth.Cache.AuthTokenCache;
 import com.example.ZAuth.DatabaseHelper.TokenVerifyData;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
@@ -14,6 +15,17 @@ import java.util.Objects;
 public class MyFirebaseOne {
     @Autowired
     FirebaseConfig firebaseConfig;
+
+    @Autowired
+    AuthTokenCache authTokenCache;
+
+
+    public void updateLastLogin(String clientId,String userId){
+        Firestore firestore = firebaseConfig.getFirestore();
+        String specificFieldsPath = clientId + "/" + userId;
+        DocumentReference docRef = firestore.document(specificFieldsPath);
+        docRef.update("LastLogin",System.currentTimeMillis());
+    }
 
     public String validateToken(TokenVerifyData data) {
         try {
@@ -43,13 +55,24 @@ public class MyFirebaseOne {
             String timeStamp=dataArray[1].trim();
 
             if(!BCrypt.checkpw(data.getAuthToken(),encryptedToken)) return "UNKNOWN";
-            if (timeStamp.equals("null")) return "OK";
+            if (timeStamp.equals("null")) {
+                authTokenCache.addNewTokenCache(data.getClientId(),
+                        data.getUserId(),
+                        rowToken,
+                        sessionTime);
+                return "OK";
+            }
 
             long minutesTillNow=getMinutesTillNow(timeStamp);
             if(minutesTillNow>Long.valueOf(sessionTime)) return "EXPIRED";
 
             DocumentReference docRef = firestore.document(specificFieldsPath);
             docRef.update("LastLogin",System.currentTimeMillis());
+
+            authTokenCache.addNewTokenCache(data.getClientId(),
+                                            data.getUserId(),
+                                             rowToken,
+                                             sessionTime);
 
             } catch (Exception e) {
             System.out.println(e.toString());
@@ -77,20 +100,33 @@ public class MyFirebaseOne {
             String sessionTime= snapshot.get("SessionTime").toString();
 
 
-            if(rowToken==null) return "UNKNOWN";
+            if(rowToken==null) {
+                return "UNKNOWN";
+            }
 
             String dataArray[]=rowToken.split(" ");
             String encryptedToken=dataArray[0];
             String timeStamp=dataArray[1].trim();
 
             if(!BCrypt.checkpw(data.getAuthToken(),encryptedToken)) return "UNKNOWN";
-            if (timeStamp.equals("null")) return "OK";
+            if (timeStamp.equals("null")) {
+                authTokenCache.addNewTokenCache(data.getClientId(),
+                        data.getUserId(),
+                        rowToken,
+                        sessionTime);
+                return "OK";
+            }
 
             long minutesTillNow=getMinutesTillNow(timeStamp);
             if(minutesTillNow>Long.valueOf(sessionTime)) return "EXPIRED";
 
             DocumentReference docRef = firestore.document(specificFieldsPath);
             docRef.update("LastLogin",System.currentTimeMillis());
+
+            authTokenCache.addNewTokenCache(data.getClientId(),
+                    data.getUserId(),
+                    rowToken,
+                    sessionTime);
 
         } catch (Exception e) {
             System.out.println(e.toString());
