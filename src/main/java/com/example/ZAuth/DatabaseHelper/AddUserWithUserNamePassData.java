@@ -1,18 +1,13 @@
 package com.example.ZAuth.DatabaseHelper;
 
 public class AddUserWithUserNamePassData {
-    private String authMethod;
     private String userName;
     private String password;
-    private String availableSessions;
     private String role;
     private String sessionTime;  //unit->minutes
     private String clientId;
     private String clintApi;
     private String clientApikey;
-    private String ipAdd;
-    private String deviceInfo;
-    private String timeStamp;
     private String recoveryMail;
     private String recoveryMob;
     private String platform;
@@ -23,14 +18,6 @@ public class AddUserWithUserNamePassData {
 
     public void setPlatform(String platform) {
         this.platform = platform;
-    }
-
-    public String getAuthMethod() {
-        return authMethod;
-    }
-
-    public void setAuthMethod(String authMethod) {
-        this.authMethod = authMethod;
     }
 
     public String getUserName() {
@@ -47,18 +34,6 @@ public class AddUserWithUserNamePassData {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getAvailableSessions() {
-        return availableSessions;
-    }
-
-    public void setAvailableSessions(String availableSessions) {
-        this.availableSessions = availableSessions;
-    }
-
-    public String getRole() {
-        return role;
     }
 
     public void setRole(String role) {
@@ -97,30 +72,6 @@ public class AddUserWithUserNamePassData {
         this.clientApikey = clientApikey;
     }
 
-    public String getIpAdd() {
-        return ipAdd;
-    }
-
-    public void setIpAdd(String ipAdd) {
-        this.ipAdd = ipAdd;
-    }
-
-    public String getDeviceInfo() {
-        return deviceInfo;
-    }
-
-    public void setDeviceInfo(String deviceInfo) {
-        this.deviceInfo = deviceInfo;
-    }
-
-    public String getTimeStamp() {
-        return timeStamp;
-    }
-
-    public void setTimeStamp(String timeStamp) {
-        this.timeStamp = timeStamp;
-    }
-
     public String getRecoveryMail() {
         return recoveryMail;
     }
@@ -135,5 +86,9 @@ public class AddUserWithUserNamePassData {
 
     public void setRecoveryMob(String recoveryMob) {
         this.recoveryMob = recoveryMob;
+    }
+
+    public String getRole() {
+        return role;
     }
 }

@@ -1,6 +1,12 @@
 package com.example.ZAuth.AuthControllers;
 
+import com.example.ZAuth.Cache.ClientCredintialCache;
 import com.example.ZAuth.Cache.ClientIdCache;
+import com.example.ZAuth.DataEncryptor.BcryptEncrypt;
+import com.example.ZAuth.DataModelsForClientCred.GoogleCred;
+import com.example.ZAuth.DatabaseHelper.AddUserWithGoogleAndroid;
+import com.example.ZAuth.FirebaseClasses.MyFirebaseTwo;
+import com.example.ZAuth.Helper.ReturnAuthDataToClient;
 import com.example.ZAuth.Helper.ReturnUserInfoAfterAuthSuccess;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
@@ -19,15 +25,12 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
+import java.util.UUID;
 
 @RestController
 public class GoogleAuthController {
 
-    private static final String CLIENT_ID = "122784136099-b192mrnguj4hauien22urkbb8jagcfcp.apps.googleusercontent.com";
-    private static final String CLIENT_SECRET = "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";
-    private static final String REDIRECT_URI = "http://localhost:8080/googleLoginCallback";
     private static final String SCOPE = "openid profile email";
-
     private final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
 
@@ -35,7 +38,12 @@ public class GoogleAuthController {
     }
 
     @Autowired
+    MyFirebaseTwo myFirebaseTwo;
+
+    @Autowired
     ClientIdCache clientIdCache;
+    @Autowired
+    ClientCredintialCache clientCredintialCache;
 
 
     @GetMapping("/GoogleLoginBuild")
@@ -47,9 +55,18 @@ public class GoogleAuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("invalid_client_credientilas");
         }
 
+        
+
+        GoogleCred cred=clientCredintialCache.getGoogleAuthCredintials(clientId);
+        if (cred==null) return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("" +
+                "The client secretes are missing ,please add the google api key and password in ZAuth dashboard");
+
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                HTTP_TRANSPORT, JSON_FACTORY, CLIENT_ID, CLIENT_SECRET, Collections.singletonList(SCOPE))
+                HTTP_TRANSPORT, JSON_FACTORY, cred.getGoogleId(),cred.getGoogleIdSecrete(), Collections.singletonList(SCOPE))
                 .build();
+
+        String REDIRECT_URI = "http://localhost:8080/googleLoginCallback/"+clientId;
+
 
         GoogleAuthorizationCodeRequestUrl url = flow.newAuthorizationUrl()
                 .setRedirectUri(REDIRECT_URI);
@@ -58,40 +75,85 @@ public class GoogleAuthController {
         return ResponseEntity.ok("Redirecting");
     }
 
-    @GetMapping("/googleLoginCallback")
-    public ResponseEntity<?> handleGoogleCallback(@RequestParam("code") String code) {
+    @GetMapping("/googleLoginCallback/{clientId}")
+    public ResponseEntity<?> handleGoogleCallback(@RequestParam("code") String code,
+                                                   @PathVariable("clientId") String clientId) {
         try {
 
+            System.out.println(clientId);
+            GoogleCred cred=clientCredintialCache.getGoogleAuthCredintials("ASDFGHJKL");
+            if (cred==null) return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("" +
+                    "The client secretes are missing ,please add the google api key and password in ZAuth dashboard");
+
+
             GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                    HTTP_TRANSPORT, JSON_FACTORY, CLIENT_ID, CLIENT_SECRET, Collections.singletonList(SCOPE))
+                    HTTP_TRANSPORT, JSON_FACTORY, cred.getGoogleId(),cred.getGoogleIdSecrete(), Collections.singletonList(SCOPE))
                     .build();
             // Handle the Google callback to exchange the authorization code for tokens
             GoogleTokenResponse tokenResponse = flow.newTokenRequest(code)
-                    .setRedirectUri(REDIRECT_URI)
+                    .setRedirectUri("http://localhost:8080/googleLoginCallback/"+clientId)
                     .execute();
 
             // Extract user email from the ID token
             GoogleIdToken.Payload payload = tokenResponse.parseIdToken().getPayload();
+            String googleId= payload.getUserId();
             String email = payload.getEmail();
             String name = (String) payload.get("name");
             String profilePictureUrl = (String) payload.get("picture");
-            String locale = (String) payload.get("locale");
-            String gender = (String) payload.get("gender");
-            String birthday = (String) payload.get("birthdate");
 
             if(email==null|| email.isEmpty()){
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error_during_authentication");
             }
 
-            ReturnUserInfoAfterAuthSuccess data=new ReturnUserInfoAfterAuthSuccess();
+            AddUserWithGoogleAndroid data=new AddUserWithGoogleAndroid();
             data.setEmail(email);
-            if(name!=null) data.setName(name);
-            if (profilePictureUrl!=null) data.setProfilePictureUrl(profilePictureUrl);
+            data.setGoogleId(googleId);
+            data.setPlatform("WEB");
+            data.setRole("nullByDefault");
+            data.setSessionTime("null");
+            data.setClientId(clientId);
 
-            return ResponseEntity.ok().body(data);
+            String token= String.valueOf(UUID.randomUUID());
+            String encryptedToken= BcryptEncrypt.encrypt(token);
+
+            String result=myFirebaseTwo.updateUserWithGoogleLogin(data,encryptedToken);
+
+            if(result.startsWith("ERROR")) return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+            else if (result.equals("BLOCKED")) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user_is_blocked");
+            else if(result.equals("NEWUSER")){
+                String userId=myFirebaseTwo.createUserWithGoogleLogin(data,encryptedToken);
+                return ResponseEntity.ok(new ReturnAuthDataToClient(userId,token));
+            }else{
+                return ResponseEntity.ok(new ReturnAuthDataToClient(result,token));
+            }
+
+
         } catch (IOException e) {
             // Handle error appropriately
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error_during_authentication");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
         }
     }
+
+    @PostMapping("/androidGoogleSignInOrLogin")
+    public ResponseEntity<?> signInGoogle(@RequestBody AddUserWithGoogleAndroid data){
+        if(!clientIdCache.validateClient(data.getClientId(),
+                data.getClintApi(), data.getClientApikey())){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("invalid_client_credintials");
+        }
+
+        String token= String.valueOf(UUID.randomUUID());
+        String encryptedToken= BcryptEncrypt.encrypt(token);
+
+        String result=myFirebaseTwo.updateUserWithGoogleLogin(data,encryptedToken);
+
+        if(result.startsWith("ERROR")) return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        else if (result.equals("BLOCKED")) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user_is_blocked");
+        else if(result.equals("NEWUSER")){
+            String userId=myFirebaseTwo.createUserWithGoogleLogin(data,encryptedToken);
+            return ResponseEntity.ok(new ReturnAuthDataToClient(userId,token));
+        }else{
+            return ResponseEntity.ok(new ReturnAuthDataToClient(result,token));
+        }
+    }
+
 }

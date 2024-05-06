@@ -105,22 +105,13 @@ public class MyFirebaseThree {
                 userInfo.put("AuthTokenWeb", encryptedToken + " " + AuthValidTimeStamp);
         }
 
-        if (!data.getAvailableSessions().equals("null"))
-            userInfo.put("AvailableSessions", Integer.valueOf(data.getAvailableSessions()));
         if (!data.getRole().equals("null"))
             userInfo.put("Role", data.getRole());
-        userInfo.put("CurrLogin", 1);
 
         if (data.getSessionTime().equals("null"))
             userInfo.put("SessionTime", "null");
         else
             userInfo.put("SessionTime", data.getSessionTime());
-
-        String deviceInfo = data.getIpAdd() + " " + data.getDeviceInfo() + " " + data.getTimeStamp();//Add in LoginHistory Array
-        // Add device info to LoginHistory array
-        List<String> loginHistory = new ArrayList<>();
-        loginHistory.add(deviceInfo);
-        userInfo.put("LoginHistory", loginHistory);
 
         userInfo.put("Blocked", false);
         userInfo.put("LastLogin", System.currentTimeMillis());

@@ -1,27 +1,17 @@
 package com.example.ZAuth.DatabaseHelper;
 
 public class AddUserWithEmailPassData {
-    private String authMethod;
     private String email;
     private String password;
-    private String availableSessions;
     private String role;
     private String sessionTime;  //unit->minutes
     private String clientId;
     private String clintApi;
     private String clientApikey;
-    private String ipAdd;
-    private String deviceInfo;
-    private String timeStamp;
     private String platform;
 
-
-    public String getAuthMethod() {
-        return authMethod;
-    }
-
-    public void setAuthMethod(String authMethod) {
-        this.authMethod = authMethod;
+    public String getRole() {
+        return role;
     }
 
     public String getEmail() {
@@ -38,18 +28,6 @@ public class AddUserWithEmailPassData {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getAvailableSessions() {
-        return availableSessions;
-    }
-
-    public void setAvailableSessions(String availableSessions) {
-        this.availableSessions = availableSessions;
-    }
-
-    public String getRole() {
-        return role;
     }
 
     public void setRole(String role) {
@@ -88,29 +66,6 @@ public class AddUserWithEmailPassData {
         this.clientApikey = clientApikey;
     }
 
-    public String getIpAdd() {
-        return ipAdd;
-    }
-
-    public void setIpAdd(String ipAdd) {
-        this.ipAdd = ipAdd;
-    }
-
-    public String getDeviceInfo() {
-        return deviceInfo;
-    }
-
-    public void setDeviceInfo(String deviceInfo) {
-        this.deviceInfo = deviceInfo;
-    }
-
-    public String getTimeStamp() {
-        return timeStamp;
-    }
-
-    public void setTimeStamp(String timeStamp) {
-        this.timeStamp = timeStamp;
-    }
 
     public String getPlatform() {
         return platform;

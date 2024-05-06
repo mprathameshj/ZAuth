@@ -116,7 +116,7 @@ public class MyFirebase {
         } catch (Exception e) {
             // Handle any potential exceptions (e.g., Firestore initialization, query execution)
             e.printStackTrace();
-            return "3"; // Return false in case of error
+            return "3"+e.toString(); // Return false in case of error
         }
     }
 
@@ -126,7 +126,7 @@ public class MyFirebase {
         String clientId= data.getClientId();
         Map<String,Object> userInfo=new HashMap<>();
 
-        userInfo.put("AuthMethod",data.getAuthMethod());
+        userInfo.put("AuthMethod","MobileOTP");
         userInfo.put("MobNumber",data.getMobNumber());
 
         if(data.getSessionTime().equals("null")){
@@ -144,22 +144,13 @@ public class MyFirebase {
                 userInfo.put("AuthTokenWeb",encryptedToken+" "+ AuthValidTimeStamp);
         }
 
-        if(!data.getAvailableSessions().equals("null"))
-            userInfo.put("AvailableSessions",Integer.valueOf(data.getAvailableSessions()));
         if(!data.getRole().equals("null"))
             userInfo.put("Role",data.getRole());
-        userInfo.put("CurrLogin",1);
 
         if(data.getSessionTime().equals("null"))
             userInfo.put("SessionTime","null");
         else
             userInfo.put("SessionTime",data.getSessionTime());
-
-        String deviceInfo=data.getIpAdd()+" "+data.getDeviceInfo()+" "+data.getTimeStamp();//Add in LoginHistory Array
-        // Add device info to LoginHistory array
-        List<String> loginHistory = new ArrayList<>();
-        loginHistory.add(deviceInfo);
-        userInfo.put("LoginHistory", loginHistory);
 
         userInfo.put("Blocked",false);
         userInfo.put("LastLogin",System.currentTimeMillis());
@@ -193,8 +184,7 @@ public class MyFirebase {
         String encrtptedPass= BcryptEncrypt.encrypt(data.getPassword());
         userInfo.put("Password",encrtptedPass);
 
-        if(!data.getAvailableSessions().equals("null"))
-            userInfo.put("AvailableSessions",Integer.valueOf(data.getAvailableSessions()));
+
         if(!data.getRole().equals("null"))
             userInfo.put("Role",data.getRole());
 
@@ -203,12 +193,6 @@ public class MyFirebase {
             userInfo.put("SessionTime","null");
         else
             userInfo.put("SessionTime",data.getSessionTime());
-
-        String deviceInfo=data.getIpAdd()+" "+data.getDeviceInfo()+" "+data.getTimeStamp();//Add in LoginHistory Array
-        // Add device info to LoginHistory array
-        List<String> loginHistory = new ArrayList<>();
-        loginHistory.add(deviceInfo);
-        userInfo.put("LoginHistory", loginHistory);
 
         userInfo.put("Blocked",false);
 
@@ -300,7 +284,7 @@ public class MyFirebase {
             }
 
         }catch (Exception e){
-            return "ERROR";
+            return "ERROR" + e.toString();
         }
 
         return "NEWUSER";

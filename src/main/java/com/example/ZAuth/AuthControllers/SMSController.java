@@ -79,7 +79,7 @@ public class SMSController {
                      encryptedToken,data.getPlatform());
 
              if(result.equals("0")) return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("The user is blocked");//blocked user
-             else if(result.equals("3")) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Something went wrong");//exception
+             else if(result.startsWith("3")) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);//exception
              else if (result.equals("2")) {
                  //User is new
                String userId=  firebase.createUserWithMobCredintials(data, encryptedToken);
@@ -89,7 +89,7 @@ public class SMSController {
              }
         }
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Something went wrong");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Wrong otp");
     }
 
 

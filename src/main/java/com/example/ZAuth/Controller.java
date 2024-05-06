@@ -17,6 +17,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
@@ -85,10 +86,9 @@ public class Controller {
     }
 
 
-    @GetMapping("/testMethod")
+    @PostMapping("/testMethod")
     public String test(){
-        emailSender.sendEmail("castlehindi@gmail.com","test email","this is body");
-        return  "ok";
+        return  "This is received from server";
     }
 
 }

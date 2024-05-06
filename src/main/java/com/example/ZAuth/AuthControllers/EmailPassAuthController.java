@@ -72,7 +72,7 @@ public class EmailPassAuthController {
                 data.getClientId(),encrptedToken, data.getPlatform());
 
         if(result.startsWith("ERROR")) return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-        else if (result.equals("BLOCKED")) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("user_is_blocked");
+        else if (result.equals("BLOCKED")) return ResponseEntity.status(HttpStatus.LOCKED).body("user_is_blocked");
         else if(result.equals("NEWUSER")){
             String userId=myFirebaseTwo.createUserWithEmailCredintials(data,encrptedToken);
             return ResponseEntity.ok(new ReturnAuthDataToClient(userId,token));
@@ -98,7 +98,7 @@ public class EmailPassAuthController {
 
         if(result.equals("BLOCKED")) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user_is_blocked");
         else if(result.equals("WRONG")) return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("wrong_password");
-        else if(result.startsWith("ERROR")) return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(result);
+        else if(result.startsWith("ERROR")) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         else if(result.equals("NEWUSER")){
             String userId= myFirebaseTwo.createUserWithEmailPassCredintials(data,encryptedToken);
             return ResponseEntity.ok(new ReturnAuthDataToClient(userId,token));

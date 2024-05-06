@@ -1,8 +1,8 @@
 package com.example.ZAuth.DatabaseHelper;
 
-public class AddUserWithEmailOtp {
+public class AddUserWithGoogleAndroid {
     private String email;
-    private String otp;
+    private String googleId;
     private String role;
     private String sessionTime;  //unit->minutes
     private String clientId;
@@ -19,12 +19,12 @@ public class AddUserWithEmailOtp {
         this.email = email;
     }
 
-    public String getOtp() {
-        return otp;
+    public String getGoogleId() {
+        return googleId;
     }
 
-    public void setOtp(String otp) {
-        this.otp = otp;
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
     }
 
     public String getRole() {

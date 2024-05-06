@@ -1,26 +1,14 @@
 package com.example.ZAuth.DatabaseHelper;
 
 public class AddUserWithFacebookData {
-    private String authMethod;
     private String facebookId;
-    private String availableSessions;
     private String role;
     private String sessionTime;  //unit->minutes
     private String clientId;
     private String clintApi;
     private String clientApikey;
-    private String ipAdd;
-    private String deviceInfo;
-    private String timeStamp;
     private String platform;
 
-    public String getAuthMethod() {
-        return authMethod;
-    }
-
-    public void setAuthMethod(String authMethod) {
-        this.authMethod = authMethod;
-    }
 
 
     public String getFacebookId() {
@@ -31,13 +19,6 @@ public class AddUserWithFacebookData {
         this.facebookId = facebookId;
     }
 
-    public String getAvailableSessions() {
-        return availableSessions;
-    }
-
-    public void setAvailableSessions(String availableSessions) {
-        this.availableSessions = availableSessions;
-    }
 
     public String getRole() {
         return role;
@@ -77,30 +58,6 @@ public class AddUserWithFacebookData {
 
     public void setClientApikey(String clientApikey) {
         this.clientApikey = clientApikey;
-    }
-
-    public String getIpAdd() {
-        return ipAdd;
-    }
-
-    public void setIpAdd(String ipAdd) {
-        this.ipAdd = ipAdd;
-    }
-
-    public String getDeviceInfo() {
-        return deviceInfo;
-    }
-
-    public void setDeviceInfo(String deviceInfo) {
-        this.deviceInfo = deviceInfo;
-    }
-
-    public String getTimeStamp() {
-        return timeStamp;
-    }
-
-    public void setTimeStamp(String timeStamp) {
-        this.timeStamp = timeStamp;
     }
 
     public String getPlatform() {

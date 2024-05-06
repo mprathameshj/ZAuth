@@ -5,6 +5,7 @@ import com.example.ZAuth.DataEncryptor.BcryptEncrypt;
 import com.example.ZAuth.DatabaseHelper.AddUserWithUserNamePassData;
 import com.example.ZAuth.FirebaseClasses.MyFirebase;
 import com.example.ZAuth.Helper.ReturnAuthDataToClient;
+import com.example.ZAuth.Helper.ReturnStringData;
 import com.example.ZAuth.Helper.UserCredintialsUserNamePass;
 import com.google.firebase.auth.hash.Bcrypt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,6 @@ public class UserNamePasswordController {
 
     @PostMapping("/validateUserNamePassword")
     public ResponseEntity<?> checkUser(@RequestBody UserCredintialsUserNamePass credintials){
-
         if(!clientIdCache.validateClient(credintials.getClientId()
                                         ,credintials.getClientApiKey(),
                                          credintials.getClientApiPass())){
@@ -60,12 +60,12 @@ public class UserNamePasswordController {
 
         String result=myFirebase.validateUsernamePass(credintials,encryptedToken);
 
-        if (result.equals("ERROR")){
+        if (result.startsWith("ERROR")){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server is experiancing crashesh");
         }else if (result.equals("NEWUSER")){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User is new");
         }else if(result.equals("INVALID")){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Wrong password");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("wrong password");
         }else{
             return ResponseEntity.ok(new ReturnAuthDataToClient(result,token));
         }
